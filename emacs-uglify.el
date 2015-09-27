@@ -4,7 +4,7 @@
 
 ;; Author: Aby Chan <abychan@outlook.com>
 ;; Version: 0.1
-;; URL: https://github.com/yasuyk/web-beautify
+;; URL: https://github.com/Emacs-Phoenix/emacs-uglify
 
 ;; This program is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
@@ -19,17 +19,20 @@
 ;; You should have received a copy of the GNU General Public License
 ;; along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-;; For more information, See URL https://github.com/yasuyk/web-beautify.
+;; For more information, See URL https://github.com/Emacs-Phoenix/emacs-uglify.
 
 ;;; Commentary:
 ;;nil now
 
 ;;; Code:
 
+;;https://github.com/mishoo/UglifyJS2
 (defvar uglifyjs-program "uglifyjs"
-  "The executable to use for uglify")
+  "The executable to use for uglifyjs")
 
-;;(defvar uglifyjs-args '(nil))
+;;https://github.com/fmarcia/UglifyCSS
+(defvar uglifycss-program "uglifycss"
+  "The executable to use for uglifycss")
 
 (defun uglifyjs-command-not-found-message (program)
   "construct a message about about PROGRAM not found."
@@ -37,19 +40,25 @@
    "%s not found. Install it by typing: \"[sudo]npm install uglify-js -g\" "
    program))
 
-(defun uglifyjs-error-message (bufname)
+(defun uglifycss-command-not-found-message (program)
+  "construct a message about about PROGRAM not found."
+  (format
+   "%s not found. Install it by typing: \"[sudo]npm install uglifycss -g\" "
+   program))
+
+(defun uglify-error-message (bufname)
   "Construct a format error meage with BUFNAME"
   (format
-   "Could not apply uglifyjs. See %s to check errors for details"
+   "Could not apply uglify. See %s to check errors for details"
    bufname))
 
-(defun uglifyjs-region (program beg end)
+(defun uglify-region (program beg end extenstion uglify-command-not-found-message)
   "By PROGRAM, format each line in the BEG... END region."
   (if (executable-find program)
       (save-excursion
         (let* ((tmpfile (make-temp-file "uglify-file" nil
-                                        (format ".%s" "js")))
-               (outputbufname (format "*uglify-file-%s" "js"))
+                                        (format ".%s" extenstion)))
+               (outputbufname (format "*uglify-file-%s" extenstion))
                (outputbuf (get-buffer-create outputbufname))
                (args (list tmpfile)))
           (unwind-protect
@@ -58,17 +67,16 @@
                 (write-region beg end tmpfile)
                 (apply 'call-process-region beg end program t (list t nil) t args))
             (progn
-              (delete-file tmpfile))
-            )))
-    (message (uglifyjs-command-not-found-message program))))
+              (delete-file tmpfile)))))
+    (message (uglify-command-not-found-message program))))
 
-(defun uglifyjs-buffer (program extenstion)
+(defun uglify-buffer (program extenstion uglify-command-not-found-message)
   "By PROGRAM, uglify current buffer with EXTENSTION."
   (if (executable-find program)
       (uglifyjs-buffer-now program extenstion)
-    (message (uglifyjs-command-not-found-message program))))
+    (message (uglify-command-not-found-message program))))
 
-(defun uglifyjs-buffer-now (program extenstion)
+(defun uglify-buffer-now (program extenstion)
   "Internal function of `ugligyjs-buffer'. "
   (let* ((tmpfile (make-temp-file "uglify-file" nil
                                   (format ".%s" extenstion)))
@@ -90,7 +98,7 @@
                 (goto-char p)
                 (message "Applied uglifyjs")
                 (kill-buffer outputbuf))
-            (message (uglifyjs-error-message outputbufname))
+            (message (uglify-error-message outputbufname))
             (display-buffer outputbuf)))
       (progn
         (delete-file tmpfile)))))
@@ -100,10 +108,17 @@
   "Format region if active, otherwise the current buffer."
   (interactive)
   (if (use-region-p)
-      (uglifyjs-region
-       uglifyjs-program
-       (region-beginning) (region-end))
-    (uglifyjs-buffer uglifyjs-program "js")))
+      (uglify-region  uglifyjs-program (region-beginning) (region-end) "js" 'uglifyjs-command-not-found-message)
+    (uglify-buffer uglifyjs-program "js" 'uglifyjs-command-not-found-message)))
+
+;;;###autoload
+(defun uglifycss ()
+  "Format region if active, otherwise the current buffer."
+  (interactive)
+  (if (use-region-p)
+      (uglify-region  uglifycss-program (region-beginning) (region-end) "css" 'uglifycss-command-not-found-message)
+    (uglify-buffer uglifycss-program "js" 'uglifycss-command-not-found-message)))
+
 
 
 (provide 'emacs-uglify)
