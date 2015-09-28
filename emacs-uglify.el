@@ -73,7 +73,7 @@
 (defun uglify-buffer (program extenstion uglify-command-not-found-message)
   "By PROGRAM, uglify current buffer with EXTENSTION."
   (if (executable-find program)
-      (uglifyjs-buffer-now program extenstion)
+      (uglify-buffer-now program extenstion)
     (message (uglify-command-not-found-message program))))
 
 (defun uglify-buffer-now (program extenstion)
@@ -117,7 +117,7 @@
   (interactive)
   (if (use-region-p)
       (uglify-region  uglifycss-program (region-beginning) (region-end) "css" 'uglifycss-command-not-found-message)
-    (uglify-buffer uglifycss-program "js" 'uglifycss-command-not-found-message)))
+    (uglify-buffer uglifycss-program "css" 'uglifycss-command-not-found-message)))
 
 
 
