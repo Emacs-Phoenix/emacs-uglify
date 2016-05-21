@@ -68,13 +68,14 @@
                 (apply 'call-process-region beg end program t (list t nil) t args))
             (progn
               (delete-file tmpfile)))))
-    (message (uglify-command-not-found-message program))))
+    (message (funcall uglify-command-not-found-message program))))
 
 (defun uglify-buffer (program extenstion uglify-command-not-found-message)
   "By PROGRAM, uglify current buffer with EXTENSTION."
   (if (executable-find program)
       (uglify-buffer-now program extenstion)
-    (message (uglify-command-not-found-message program))))
+    (message (funcall uglify-command-not-found-message program))))
+
 
 (defun uglify-buffer-now (program extenstion)
   "Internal function of `ugligyjs-buffer'. "
@@ -108,7 +109,7 @@
   "Format region if active, otherwise the current buffer."
   (interactive)
   (if (use-region-p)
-      (uglify-region  uglifyjs-program (region-beginning) (region-end) "js" 'uglifyjs-command-not-found-message)
+      (uglify-region uglifyjs-program (region-beginning) (region-end) "js" 'uglifyjs-command-not-found-message)
     (uglify-buffer uglifyjs-program "js" 'uglifyjs-command-not-found-message)))
 
 ;;;###autoload
@@ -116,10 +117,8 @@
   "Format region if active, otherwise the current buffer."
   (interactive)
   (if (use-region-p)
-      (uglify-region  uglifycss-program (region-beginning) (region-end) "css" 'uglifycss-command-not-found-message)
+      (uglify-region uglifycss-program (region-beginning) (region-end) "css" 'uglifycss-command-not-found-message)
     (uglify-buffer uglifycss-program "css" 'uglifycss-command-not-found-message)))
-
-
 
 (provide 'emacs-uglify)
 
